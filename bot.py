@@ -21,5 +21,6 @@ async def server_info(ctx):
     embed.add_field(name="Server ID", value=guild.id, inline=False)
     embed.add_field(name="Members", value=guild.member_count, inline=False)
     await ctx.send(embed=embed)
-
+async def save_info(ctx):
+    pass
 bot.run(TOKEN)
