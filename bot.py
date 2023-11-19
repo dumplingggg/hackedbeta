@@ -33,14 +33,12 @@ async def server_info(ctx):
     await ctx.send(embed=embed)
 
 @bot.command(name='register') #initialize user save data
-async def server_info(ctx):
-    guild = ctx.guild
+async def register(ctx, user: discord.User):
     initializeinfo(discord.User)
     await ctx.send(f'Save data initialized for {discord.User}!')
 
 @bot.command(name='stats') #show user save data
-async def server_info(ctx):
-    guild = ctx.guild
+async def user_stats(ctx, user: discord.User):
     stats = readinfo(discord.User)
     await ctx.send(f'You have {stats[0]} Liras, \n{stats[1]} Veggie Donairs, \n{stats[2]} Falafel Donairs, \n{stats[3]} Chicken Donairs, \n{stats[4]} Beef Donairs,
     \n{stats[5]} Day-old Donairs, 
