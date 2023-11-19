@@ -51,18 +51,25 @@ async def register(ctx, user: discord.User = None):
 
     user_id = user.id
     initializeinfo(user_id)
-    await ctx.send(f'Save data initialized for {ctx.author.display_name}!')
+    embed=discord.Embed(
+            colour=discord.Colour.dark_gold(),
+            title="User Registered",
+            description=f"{ctx.author.display_name} joined the hunt!"
+        )
+    await ctx.send(embed=embed)
     
-
 @bot.command(name='stats') #show user save data
 async def user_stats(ctx, user: discord.User = None):
     if user is None:
         user = ctx.author
-
     user_id = user.id
     stats = readinfo(user_id)
-    await ctx.send(f' Liras:{stats[0]}\nVeggie:{stats[1]}\nFalafel:{stats[2]}\nChicken:{stats[3]}\nBeef:{stats[4]}\nDay-Old:{stats[5]}\nKids-Size:{stats[6]}\nStandard:{stats[7]}\nJumbo:{stats[8]}\nBronze:{stats[9]}\nSilver:{stats[10]}\nGold:{stats[11]}\nPlatinum:{stats[12]}\nDonner:{stats[13]}\n'
-                    )
+    embed=discord.Embed(
+            colour=discord.Colour.dark_teal(),
+            title=f"{ctx.author.display_name}'s Donair Stats",
+            description=f' Liras:{stats[0]}\nVeggie:{stats[1]}\nFalafel:{stats[2]}\nChicken:{stats[3]}\nBeef:{stats[4]}'
+    )
+    await ctx.send(embed=embed)
 
 @bot.command(name="rob")
 @commands.cooldown(1,5, commands.BucketType.user)
@@ -88,10 +95,13 @@ async def rob(ctx, id2: discord.Member = None):
         embed.set_footer(text=f"{ctx.author.display_name} lost 30000 to the Sheriff.")
         await ctx.send(embed=embed)
         money[id] = money.get(id,0) - 30000
+        update_entry(id, 'liras', readinfo(id)[0]-30000)
         return
     else:
         money[id] = money.get(id,0) +5000
+        update_entry(id, 'liras', readinfo(id)[0]+5000)
         money[robbed] = money.get(robbed,0) -5000
+        update_entry(robbed, 'liras', readinfo(robbed)[0]-5000)
         embed=discord.Embed(
             colour=discord.Colour.red(),
             title="**Theft Successful!**",
@@ -144,8 +154,11 @@ async def heist(ctx, coop: discord.Member=None, targ: discord.Member=None):
             )
         await ctx.send(embed=embed)
         money[coop.id] +=20000
+        update_entry(coop.id, 'liras', readinfo(coop.id)[0]+20000)
         money[targ.id] -=40000
+        update_entry(targ.id, 'liras', readinfo(targ.id)[0]-20000)
         money[ctx.author.id] +=20000
+        update_entry(ctx.author.id, 'liras', readinfo(ctx.author.id)[0]+20000)
 
     else:
         embed=discord.Embed(
@@ -237,7 +250,7 @@ async def give_points(ctx, user: discord.User):
     current_points = money.get(user.id, 0)
     new_points = current_points + random_points
     money[user.id] = new_points
-    update_entry(user_id, liras, new_points)
+    update_entry(user_id, 'liras', new_points)
 
     await ctx.send(f'You found {random_points} turkish liras :coin: habibi {user.name}. You now have {new_points} turkish liras.')
 
@@ -257,7 +270,7 @@ async def info(ctx):
     embed = discord.Embed(
     colour=discord.Colour.orange(),
     title="Welcome to Shawarma Sheriff!",
-    description=("\nYou are a fiend for donair, your sole purpose in life is to eat as many delicious donairs as possible. \n\nThis game can be played using the following commands:\n \n/rummage: search for loot\n/roll: trade your money to find new Donair\n/rob: steal money from our players, but risk getting caught and losing money\n/heist: call on another player to help you rob someone for even more money, but with a bigger risk\n/stats: display your current donair stats\n/flex: compare your wealth to other players\n")
+    description=("\nYou are a fiend for donair, your sole purpose in life is to eat as many delicious donairs as possible. \n\nThis game can be played using the following commands:\n \n/register: to join the game (required to save progress)\n/rummage: search for loot\n/roll: trade your money to find new Donair\n/rob: steal money from our players, but risk getting caught and losing money\n/heist: call on another player to help you rob someone for even more money, but with a bigger risk\n/stats: display your current donair stats\n/flex: compare your wealth to other players\n")
 
     )
     await ctx.send(embed=embed)
@@ -292,34 +305,26 @@ async def roll(ctx, user: Optional[discord.User] = None):
 
         if rarval < 4000:
             rarity = "Day-old"
-            update_entry(id, 'Day-Old', readinfo(id)[5]+1)
         if 4000<= rarval < 7000:
             rarity = "Kids Sized"
-            update_entry(id, 'Kids Sized', readinfo(id)[6]+1)
+            
         if 7000<= rarval < 9000:
             rarity = "Standard"
-            update_entry(id, 'Standard', readinfo(id)[7]+1)
+            
         if 9000<= rarval < 9500:
             rarity = "Jumbo"
-            update_entry(id, 'Jumbo', readinfo(id)[8]+1)
         if 9500<= rarval < 9700:
             rarity = "Bronze"
-            update_entry(id, 'Bronze', readinfo(id)[9]+1)
         if 9700<= rarval < 9800:
             rarity = "Silver"
-            update_entry(id, 'Silver', readinfo(id)[10]+1)
         if 9800<= rarval < 9900:
             rarity = "Gold"
-            update_entry(id, 'Gold', readinfo(id)[11]+1)
         if 9900<= rarval < 9980:
             rarity = "Platinum"
-            update_entry(id, 'Plaitinum', readinfo(id)[12]+1)
         if 9980<= rarval < 10000:
             rarity = "Donner"
-            update_entry(id, 'Donner', readinfo(id)[13]+1)
-        if rarval >=10000: 
-            rarity = "Donner" 
-            update_entry(id, 'Donner', readinfo(id)[13]+1)
+        if rarval >=10000: #defaults to bronze if surpasses limit  -- should this go to donner?
+            rarity = "Bronze" 
 
         #donair type
         
@@ -380,7 +385,7 @@ async def roll(ctx, user: Optional[discord.User] = None):
         butn = discord.ui.View()
         butn.add_item(reroll(ctx.author))
         await ctx.send(view=butn)
-         
+
 @roll.error
 async def roll(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
