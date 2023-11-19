@@ -32,6 +32,7 @@ def update_entry(id, datatype, data):
         csv_writer.writerow(info.values())  # Write the data row
 
 def readinfo(id):
+    filename = f"{id}.csv"
     with open(filename, "r", newline='') as file:
         csv_reader = csv.reader(file)
         header = next(csv_reader)  # Read the header row
