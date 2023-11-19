@@ -45,12 +45,13 @@ async def server_info(ctx):
     await ctx.send(f'You have {stats[0]} Liras, \n{stats[1]} Veggie Donairs, \n{stats[2]} Falafel Donairs, \n{stats[3]} Chicken Donairs, \n{stats[4]} Beef Donairs,
     \n{stats[5]} Day-old Donairs, 
     \n{stats[6]} Kids Sized Donairs, 
-    \n{stats[7]} Jumbo Donairs, 
-    \n{stats[8]} Bronze Donairs, 
-    \n{stats[9]} Silver Donairs,
-    \n{stats[10]} Gold Donairs,  
-    \n{stats[11]} Platinum Donairs, 
-    \n{stats[12]} Donner Donairs') 
+    \n{stats[7]} Standard Donairs,
+    \n{stats[8]} Jumbo Donairs, 
+    \n{stats[9]} Bronze Donairs, 
+    \n{stats[10]} Silver Donairs,
+    \n{stats[11]} Gold Donairs,  
+    \n{stats[12]} Platinum Donairs, 
+    \n{stats[13]} Donner Donairs') 
     
 @bot.command(name='rummage')
 async def give_points(ctx, user: discord.User):
