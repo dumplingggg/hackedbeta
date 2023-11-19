@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from discord.ext import commands
 import random
 import asyncio
+from info import initializeinfo, update_entry, readinfo
 
 load_dotenv()
 TOKEN = os.getenv('token')
@@ -22,6 +23,35 @@ donairstrg = {} ## USER INVENTORIES
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
 
+@bot.command(name='serverinfo')
+async def server_info(ctx):
+    guild = ctx.guild
+    embed = discord.Embed(title="Server Information", color=0x00ff00)
+    embed.add_field(name="Server Name", value=guild.name, inline=False)
+    embed.add_field(name="Server ID", value=guild.id, inline=False)
+    embed.add_field(name="Members", value=guild.member_count, inline=False)
+    await ctx.send(embed=embed)
+
+@bot.command(name='register') #initialize user save data
+async def server_info(ctx):
+    guild = ctx.guild
+    initializeinfo(discord.User)
+    await ctx.send(f'Save data initialized for {discord.User}!')
+
+@bot.command(name='stats') #show user save data
+async def server_info(ctx):
+    guild = ctx.guild
+    stats = readinfo(discord.User)
+    await ctx.send(f'You have {stats[0]} Liras, \n{stats[1]} Veggie Donairs, \n{stats[2]} Falafel Donairs, \n{stats[3]} Chicken Donairs, \n{stats[4]} Beef Donairs,
+    \n{stats[5]} Day-old Donairs, 
+    \n{stats[6]} Kids Sized Donairs, 
+    \n{stats[7]} Jumbo Donairs, 
+    \n{stats[8]} Bronze Donairs, 
+    \n{stats[9]} Silver Donairs,
+    \n{stats[10]} Gold Donairs,  
+    \n{stats[11]} Platinum Donairs, 
+    \n{stats[12]} Donner Donairs') 
+    
 @bot.command(name='rummage')
 async def give_points(ctx, user: discord.User):
     # initial donair count
@@ -44,6 +74,12 @@ async def give_points(ctx, user: discord.User):
     donair_counts[user_id]['Falafel'] += Falafel_Donair
     donair_counts[user_id]['Chicken'] += Chicken_Donair
     donair_counts[user_id]['Beef'] += Beef_Donair
+
+
+    update_entry(user_id,'Veggie', Veggie_Donair)
+    update_entry(user_id,'Falafel', Falafel_Donair)
+    update_entry(user_id,'Chicken', Chicken_Donair)
+    update_entry(user_id,'Beef', Beef_Donair)
 
     range_decision = random.random() # generates a new number for the next iteration
 
@@ -68,6 +104,7 @@ async def give_points(ctx, user: discord.User):
     current_points = points_dict.get(user.id, 0)
     new_points = current_points + random_points
     points_dict[user.id] = new_points
+    update_entry(user_id, liras, new_points)
 
     await ctx.send(f'You found {random_points} turkish liras :coin: habibi {user.name}. You now have {new_points} turkish liras.')
 
