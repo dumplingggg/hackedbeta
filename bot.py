@@ -4,6 +4,8 @@ import math
 import random
 from dotenv import load_dotenv
 from discord.ext import commands
+import random
+import asyncio
 
 load_dotenv()
 TOKEN = os.getenv('token')
@@ -12,19 +14,13 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='/', intents=intents)
 points_dict = {}    
 donair_counts = {}
+zone= [] #PLAYER EATERY
+modifier = {} ## TEMP MODIFIER
+donairstrg = {} ## USER INVENTORIES
 
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
-
-@bot.command(name='serverinfo')
-async def server_info(ctx):
-    guild = ctx.guild
-    embed = discord.Embed(title="Server Information", color=0x00ff00)
-    embed.add_field(name="Server Name", value=guild.name, inline=False)
-    embed.add_field(name="Server ID", value=guild.id, inline=False)
-    embed.add_field(name="Members", value=guild.member_count, inline=False)
-    await ctx.send(embed=embed)
 
 @bot.command(name='rummage')
 async def give_points(ctx, user: discord.User):
@@ -68,7 +64,6 @@ async def give_points(ctx, user: discord.User):
 
     random_points =  random_points + Veggie_Donair_Points + Falafel_Donair_Points + Chicken_Donair_Points + Beef_Donair_Points
 
-
     # update user points
     current_points = points_dict.get(user.id, 0)
     new_points = current_points + random_points
@@ -86,5 +81,77 @@ async def check_points(ctx, user: discord.User = None):
     user_donairs = donair_counts.get(user_id, {'Veggie': 0, 'Falafel': 0, 'Chicken': 0, 'Beef': 0})
     user_points = points_dict.get(ctx.author.id, 0)
     await ctx.send(f'You currently have {user_points} turkish liras\n {user_donairs["Veggie"]} veggie donairs\n {user_donairs["Falafel"]} falafel donairs\n {user_donairs["Chicken"]} chicken donairs\n {user_donairs["Beef"]} beef donairs')
+
+@bot.command(name="info")
+async def info(ctx):
+    await ctx.send("Welcome to Shawarma Sheriff! \nYou are a fiend for donair, your sole purpose in life is to eat as many delicious donairs as possible. \nThis game can be played using the following commands:")
+
+@bot.command(name="modifierset")
+async def modifierset(ctx, value="int"):
+    id = ctx.author.id
+    modifier[id] = value
+    await ctx.send(f"{ctx.author.mention} modifier is now {value}")
+    
+@bot.command(name="roll")
+@commands.cooldown(1,5, commands.BucketType.user)
+async def roll(ctx):
+    #Loading of user ID
+    id = ctx.author.id
+    modval = modifier.get(id,1)
+        
+    #cosmetic
+    await ctx.send("**Donair Capsule Opened!** \n-----------------------------------------------------------------")
+    #Rolling probability
+
+    #rolling rarity
+    rarity = "day-old"
+    rarval = random.randint(0,10000)
+    
+    #donair type
+    
+    roll= random.randint(0,1000)
+    rollval = roll*modval
+
+    if rollval < 350:
+        await ctx.send(f"You found a *{rarity}* **Veggie Donair**\n-----------------------------------------------------------------")
+        veg="Veggie.png"
+        await ctx.send(file=discord.File(veg))
+        donair = "Veggie"
+    if 350 <= rollval <820: 
+        await ctx.send(f"You found a *{rarity}* **Falafel Donair**\n-----------------------------------------------------------------")
+        falafel="Falafel.png"
+        await ctx.send(file=discord.File(falafel))
+        donair = "Falafel"
+    if 820<= rollval <950: 
+        await ctx.send(f"You found a *{rarity}* **Chicken Donair**\n-----------------------------------------------------------------")
+        shawarma="Shawarma_1.png"
+        await ctx.send(file=discord.File(shawarma))
+        donair = "Chicken"
+    if 950 <= rollval <1001: 
+        await ctx.send(f"You found a *{rarity}* **Beef Donair**\n-----------------------------------------------------------------")
+        beef="Beef.png"
+        await ctx.send(file=discord.File(beef))
+        donair = "Beef"
+    await ctx.send("-----------------------------------------------------------------")
+    if  1001 <= rollval: 
+        await ctx.send(f"You found a *{rarity}* **Beef Donair**\n-----------------------------------------------------------------")
+        beef="Beef.png"
+        await ctx.send(file=discord.File(beef))
+        await ctx.send("-----------------------------------------------------------------")
+        donair = "Beef"
+    if id not in donairstrg: 
+        donairstrg[id] = []
+    donairstrg[id].append(donair)
+    
+@roll.error
+async def roll(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+            await ctx.send("**Wallahi fam slow down. You must appreciate the donair.**\n*(Please wait 5 seconds between rolls)*")
+   
+@bot.command(name="inv")
+async def inv(ctx):
+    id = ctx.author.id
+    inv_id=donairstrg.get(id,[])
+    await ctx.send(inv_id)
 
 bot.run(TOKEN)
