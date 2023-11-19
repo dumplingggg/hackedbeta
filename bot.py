@@ -7,6 +7,7 @@ from discord.ext import commands
 import random
 import asyncio
 from info import initializeinfo, update_entry, readinfo
+from typing import Optional
 
 load_dotenv()
 TOKEN = os.getenv('token')
@@ -19,12 +20,23 @@ zone= [] #PLAYER EATERY
 modifier = {} ## TEMP MODIFIER
 donairstrg = {} ## USER INVENTORIES
 
+class reroll(discord.ui.Button):
+    def __init__(self, user):
+        super().__init__(style=discord.ButtonStyle.success, label="Roll Again?")
+        self.user = user
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        ctx = await bot.get_context(interaction.message)
+        ctx.author = self.user
+        await ctx.invoke(bot.get_command("roll"), user=self.user)
+
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
 
 @bot.command(name='serverinfo')
-async def server_info(ctx):
+async def server_info(ctx): 
     guild = ctx.guild
     embed = discord.Embed(title="Server Information", color=0x00ff00)
     embed.add_field(name="Server Name", value=guild.name, inline=False)
@@ -40,16 +52,10 @@ async def register(ctx, user: discord.User):
 @bot.command(name='stats') #show user save data
 async def user_stats(ctx, user: discord.User):
     stats = readinfo(discord.User)
-    await ctx.send(f'You have {stats[0]} Liras, \n{stats[1]} Veggie Donairs, \n{stats[2]} Falafel Donairs, \n{stats[3]} Chicken Donairs, \n{stats[4]} Beef Donairs,
-    \n{stats[5]} Day-old Donairs, 
-    \n{stats[6]} Kids Sized Donairs, 
-    \n{stats[7]} Standard Donairs,
-    \n{stats[8]} Jumbo Donairs, 
-    \n{stats[9]} Bronze Donairs, 
-    \n{stats[10]} Silver Donairs,
-    \n{stats[11]} Gold Donairs,  
-    \n{stats[12]} Platinum Donairs, 
-    \n{stats[13]} Donner Donairs') 
+    await ctx.send(f'You have {stats[0]} Liras, \n{stats[1]} Veggie Donairs, \n{stats[2]} Falafel Donairs, \n{stats[3]} Chicken Donairs, \n{stats[4]} Beef Donairs, \
+    \n{stats[5]} Day-old Donairs, \n{stats[6]} Kids Sized Donairs, \n{stats[7]} Standard Donairs, \n{stats[8]} Jumbo Donairs, \n{stats[9]} Bronze Donairs, \
+    \n{stats[10]} Silver Donairs, \n{stats[11]} Gold Donairs, \n{stats[12]} Platinum Donairs, \n{stats[13]} Donner Donairs')
+
     
 @bot.command(name='rummage')
 async def give_points(ctx, user: discord.User):
@@ -130,59 +136,107 @@ async def modifierset(ctx, value="int"):
     
 @bot.command(name="roll")
 @commands.cooldown(1,5, commands.BucketType.user)
-async def roll(ctx):
-    #Loading of user ID
-    id = ctx.author.id
-    modval = modifier.get(id,1)
+async def roll(ctx, user: Optional[discord.User] = None):
+    money=0
+    if money >= 0:
+        #Loading of user ID
+        id = user.id if user else ctx.author.id
+        modval = int(modifier.get(id,1))
         
-    #cosmetic
-    await ctx.send("**Donair Capsule Opened!** \n-----------------------------------------------------------------")
-    #Rolling probability
+        #cosmetic
+        embed=discord.Embed(
+            colour=discord.Colour.green(),
+            title="**Donair Capsule Opened!**",
+        )
 
-    #rolling rarity
-    rarity = "day-old"
-    rarval = random.randint(0,10000)
-    
-    #donair type
-    
-    roll= random.randint(0,1000)
-    rollval = roll*modval
+        #Rolling probability
 
-    if rollval < 350:
-        await ctx.send(f"You found a *{rarity}* **Veggie Donair**\n-----------------------------------------------------------------")
-        veg="Veggie.png"
-        await ctx.send(file=discord.File(veg))
-        donair = "Veggie"
-    if 350 <= rollval <820: 
-        await ctx.send(f"You found a *{rarity}* **Falafel Donair**\n-----------------------------------------------------------------")
-        falafel="Falafel.png"
-        await ctx.send(file=discord.File(falafel))
-        donair = "Falafel"
-    if 820<= rollval <950: 
-        await ctx.send(f"You found a *{rarity}* **Chicken Donair**\n-----------------------------------------------------------------")
-        shawarma="Shawarma_1.png"
-        await ctx.send(file=discord.File(shawarma))
-        donair = "Chicken"
-    if 950 <= rollval <1001: 
-        await ctx.send(f"You found a *{rarity}* **Beef Donair**\n-----------------------------------------------------------------")
-        beef="Beef.png"
-        await ctx.send(file=discord.File(beef))
-        donair = "Beef"
-    await ctx.send("-----------------------------------------------------------------")
-    if  1001 <= rollval: 
-        await ctx.send(f"You found a *{rarity}* **Beef Donair**\n-----------------------------------------------------------------")
-        beef="Beef.png"
-        await ctx.send(file=discord.File(beef))
-        await ctx.send("-----------------------------------------------------------------")
-        donair = "Beef"
-    if id not in donairstrg: 
-        donairstrg[id] = []
-    donairstrg[id].append(donair)
-    
+        #rolling rarity
+        
+        rarval2 = random.randint(0,10000) # range to pick for rarity
+        rarval = modval*rarval2 #modval scales rarity to higher number
+
+        if rarval < 4000:
+            rarity = "Day-old"
+        if 4000<= rarval < 7000:
+            rarity = "Kids Sized"
+        if 7000<= rarval < 9000:
+            rarity = "Standard"
+        if 9000<= rarval < 9500:
+            rarity = "Jumbo"
+        if 9500<= rarval < 9700:
+            rarity = "Bronze"
+        if 9700<= rarval < 9800:
+            rarity = "Silver"
+        if 9800<= rarval < 9900:
+            rarity = "Gold"
+        if 9900<= rarval < 9980:
+            rarity = "Platinum"
+        if 9980<= rarval < 10000:
+            rarity = "Donner"
+        if rarval >=10000: #defaults to bronze if surpasses limit  -- should this go to donner?
+            rarity = "Bronze" 
+
+        #donair type
+        
+        roll= random.randint(0,1000)
+        rollval = roll*(modval)
+        
+        if rollval < 350:
+            flav1="Is it really donair?"
+            embed.set_image(url="attachment://Veggie.png")
+            dfile=discord.File("Veggie.png")
+            donair = "Veggie"
+        if 350 <= rollval <820: 
+            flav1="Still insubstantial; Think of it as a precursor to donair."
+            embed.set_image(url="attachment://Falafel.png")
+            dfile=discord.File("Falafel.png")
+           
+            donair = "Falafel"
+        if 820<= rollval <950: 
+            flav1="A staple of donair. Juicy, seasoned chicken"
+            embed.set_image(url="attachment://Shawarma (1).png")
+            dfile=discord.File("Shawarma (1).png")
+     
+            donair = "Chicken"
+        if 950 <= rollval <1001: 
+            flav1="Now you know what’s in it, and it turns out the perfect donair all along was just Beef."
+            embed.set_image(url="attachment://Beef.png")
+            dfile=discord.File("Beef.png")
+         
+            donair = "Beef"
+           
+        if  1001 <= rollval: 
+            flav1="Now you know what’s in it, and it turns out the perfect donair all along was just Beef."
+            embed.set_image(url="attachment://Beef.png")
+            dfile=discord.File("Beef.png")
+            
+            donair = "Beef"
+
+        embed=discord.Embed(
+            colour=discord.Colour.green(),
+            title="**Donair Capsule Opened!**",
+            description=f"You found a *{rarity}* **{donair} Donair** \n ``{flav1}``"
+
+
+        )
+        
+        embed.set_footer(text=f"found by {ctx.author.display_name}")
+        await ctx.send(embed=embed, file=dfile)
+
+        if id not in donairstrg: 
+            donairstrg[id] = []
+        donairstrg[id].append(rarity+" "+donair)
+
+
+        butn = discord.ui.View()
+        butn.add_item(reroll(ctx.author))
+        await ctx.send(view=butn)
+         
 @roll.error
 async def roll(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
-            await ctx.send("**Wallahi fam slow down. You must appreciate the donair.**\n*(Please wait 5 seconds between rolls)*")
+            await ctx.send("**Whoa there buckeroo, slow down yer rolling!**\n*(Please wait 5 secounds between rolls)*")
    
 @bot.command(name="inv")
 async def inv(ctx):
