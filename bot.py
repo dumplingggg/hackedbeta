@@ -32,24 +32,28 @@ async def server_info(ctx):
     embed.add_field(name="Members", value=guild.member_count, inline=False)
     await ctx.send(embed=embed)
 
-@bot.command(name='register') #initialize user save data
-async def register(ctx, user: discord.User):
-    initializeinfo(discord.User)
-    await ctx.send(f'Save data initialized for {discord.User}!')
+@bot.command(name='register')
+async def register(ctx, user: discord.User = None):
+    ####
+    if user is None:
+        user = ctx.author
+
+    user_id = user.id
+    initializeinfo(user_id)
+    await ctx.send(f'Save data initialized for {ctx.author.display_name}!')
+    
 
 @bot.command(name='stats') #show user save data
-async def user_stats(ctx, user: discord.User):
-    stats = readinfo(discord.User)
-    await ctx.send(f'You have {stats[0]} Liras, \n{stats[1]} Veggie Donairs, \n{stats[2]} Falafel Donairs, \n{stats[3]} Chicken Donairs, \n{stats[4]} Beef Donairs,
-    \n{stats[5]} Day-old Donairs, 
-    \n{stats[6]} Kids Sized Donairs, 
-    \n{stats[7]} Standard Donairs,
-    \n{stats[8]} Jumbo Donairs, 
-    \n{stats[9]} Bronze Donairs, 
-    \n{stats[10]} Silver Donairs,
-    \n{stats[11]} Gold Donairs,  
-    \n{stats[12]} Platinum Donairs, 
-    \n{stats[13]} Donner Donairs') 
+async def user_stats(ctx, user: discord.User = None):
+    if user is None:
+        user = ctx.author
+
+    user_id = user.id
+    stats = readinfo(user_id)
+    await ctx.send(f' Liras:{stats[0]}\nVeggie:{stats[1]}\nFalafel:{stats[2]}\nChicken:{stats[3]}\nBeef:{stats[4]}\nDay-Old:{stats[5]}\nKids-Size:{stats[6]}\nStandard:{stats[7]}\nJumbo:{stats[8]}\nBronze:{stats[9]}\nSilver:{stats[10]}\nGold:{stats[11]}\nPlatinum:{stats[12]}\nDonner:{stats[13]}\n'
+                    )
+
+    
     
 @bot.command(name='rummage')
 async def give_points(ctx, user: discord.User):
@@ -73,12 +77,6 @@ async def give_points(ctx, user: discord.User):
     donair_counts[user_id]['Falafel'] += Falafel_Donair
     donair_counts[user_id]['Chicken'] += Chicken_Donair
     donair_counts[user_id]['Beef'] += Beef_Donair
-
-
-    update_entry(user_id,'Veggie', Veggie_Donair)
-    update_entry(user_id,'Falafel', Falafel_Donair)
-    update_entry(user_id,'Chicken', Chicken_Donair)
-    update_entry(user_id,'Beef', Beef_Donair)
 
     range_decision = random.random() # generates a new number for the next iteration
 
@@ -140,9 +138,8 @@ async def roll(ctx):
     #Rolling probability
 
     #rolling rarity
-    rarity = "day-old"
+    rarity = "Day-old"
     rarval = random.randint(0,10000)
-    
     #donair type
     
     roll= random.randint(0,1000)
@@ -153,21 +150,26 @@ async def roll(ctx):
         veg="Veggie.png"
         await ctx.send(file=discord.File(veg))
         donair = "Veggie"
+        update_entry(id,'Veggie',readinfo(id)[1]+1)
+        
     if 350 <= rollval <820: 
         await ctx.send(f"You found a *{rarity}* **Falafel Donair**\n-----------------------------------------------------------------")
         falafel="Falafel.png"
         await ctx.send(file=discord.File(falafel))
         donair = "Falafel"
+        update_entry(id,'Falafel',readinfo(id)[2]+1)
     if 820<= rollval <950: 
         await ctx.send(f"You found a *{rarity}* **Chicken Donair**\n-----------------------------------------------------------------")
         shawarma="Shawarma_1.png"
         await ctx.send(file=discord.File(shawarma))
         donair = "Chicken"
+        update_entry(id,'Chicken',readinfo(id)[3]+1)
     if 950 <= rollval <1001: 
         await ctx.send(f"You found a *{rarity}* **Beef Donair**\n-----------------------------------------------------------------")
         beef="Beef.png"
         await ctx.send(file=discord.File(beef))
         donair = "Beef"
+        update_entry(id,'Beef',readinfo(id)[4]+1)
     await ctx.send("-----------------------------------------------------------------")
     if  1001 <= rollval: 
         await ctx.send(f"You found a *{rarity}* **Beef Donair**\n-----------------------------------------------------------------")
@@ -175,10 +177,11 @@ async def roll(ctx):
         await ctx.send(file=discord.File(beef))
         await ctx.send("-----------------------------------------------------------------")
         donair = "Beef"
+        update_entry(id,'Beef',readinfo(id)[4]+1)
     if id not in donairstrg: 
         donairstrg[id] = []
-    donairstrg[id].append(donair)
-    
+    donairstrg[id].append(donair+"!")
+    update_entry(id,rarity,readinfo(id)[5]+1)
 @roll.error
 async def roll(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
