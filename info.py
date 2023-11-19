@@ -5,7 +5,7 @@ def initializeinfo(id):
     
     with open(filename, "x", newline='') as file:
         csv_writer = csv.writer(file)
-        info = {'liras': 0, 'donair_type1': 0, 'donair_type2': 0}
+        info = {'liras': 0, 'Veggie': 0, 'Falafel': 0, 'Chicken': 0, 'Beef': 0}
         csv_writer.writerow(info.keys())  # Write the header row
         csv_writer.writerow(info.values())  # Write the data row
 
@@ -37,4 +37,4 @@ def readinfo(id):
         header = next(csv_reader)  # Read the header row
         data = next(csv_reader)    # Read the data row
         info = dict(zip(header, data))
-    return info['liras'], info['donair_type1'], info['donair_type2']
+    return info['liras'], info['Veggie'], info['Falafel'], info['Chicken'], info['Beef']

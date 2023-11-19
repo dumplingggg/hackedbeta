@@ -4,6 +4,7 @@ import math
 import random
 from dotenv import load_dotenv
 from discord.ext import commands
+from info import initializeinfo, update_entry, readinfo
 
 load_dotenv()
 TOKEN = os.getenv('token')
@@ -26,6 +27,18 @@ async def server_info(ctx):
     embed.add_field(name="Members", value=guild.member_count, inline=False)
     await ctx.send(embed=embed)
 
+@bot.command(name='register') #initialize user save data
+async def server_info(ctx):
+    guild = ctx.guild
+    initializeinfo(discord.User)
+    await ctx.send(f'Save data initialized for {discord.User}!')
+
+@bot.command(name='stats') #show user save data
+async def server_info(ctx):
+    guild = ctx.guild
+    stats = readinfo(discord.User)
+    await ctx.send(f'You have {stats[0]} Liras, \n{stats[1]} Veggie Donairs, \n{stats[2]} Falafel Donairs, \n{stats[3]} Chicken Donairs, \n{stats[4]} Beef Donairs')
+    
 @bot.command(name='rummage')
 async def give_points(ctx, user: discord.User):
     # initial donair count
@@ -48,6 +61,12 @@ async def give_points(ctx, user: discord.User):
     donair_counts[user_id]['Falafel'] += Falafel_Donair
     donair_counts[user_id]['Chicken'] += Chicken_Donair
     donair_counts[user_id]['Beef'] += Beef_Donair
+
+
+    update_entry(user_id,'Veggie', Veggie_Donair)
+    update_entry(user_id,'Falafel', Falafel_Donair)
+    update_entry(user_id,'Chicken', Chicken_Donair)
+    update_entry(user_id,'Beef', Beef_Donair)
 
     range_decision = random.random() # generates a new number for the next iteration
 
@@ -73,6 +92,7 @@ async def give_points(ctx, user: discord.User):
     current_points = points_dict.get(user.id, 0)
     new_points = current_points + random_points
     points_dict[user.id] = new_points
+    update_entry(user_id, liras, new_points)
 
     await ctx.send(f'You found {random_points} turkish liras :coin: habibi {user.name}. You now have {new_points} turkish liras.')
 
